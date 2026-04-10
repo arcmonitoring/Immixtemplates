@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Immix Config Generator — Arc Monitoring</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap');
+
+  :root {
+    --white: #ffffff; --black: #000000;
+    --grey-100: #f8f8f8; --grey-200: #eeeceb; --grey-400: #938c86; --grey-600: #5c5551; --grey-900: #333333;
+    --blue-300: #84dbd4; --blue-400: #6bbca9; --blue-900: #087d77;
+    --pink-400: #d36bc6; --pink-700: #af23a5;
+    --border: #dddad8; --text: var(--grey-900); --text-muted: var(--grey-400); --text-dim: var(--grey-600);
+    --success: #1a7a4a; --success-bg: #eaf6f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--grey-100); color: var(--text); font-family: 'Montserrat', sans-serif; font-weight: 400; min-height: 100vh; }
+
+  /* HEADER */
+  header { background: var(--white); border-bottom: 3px solid var(--blue-300); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 68px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark { height: 40px; background: var(--blue-900); border-radius: 6px; display: flex; align-items: center; justify-content: center; padding: 0 14px; font-weight: 800; font-size: 14px; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; flex-shrink: 0; }
+  .logo-mark span { color: var(--blue-300); margin-right: 4px; }
+  .header-divider { width: 1px; height: 28px; background: var(--grey-200); }
+  .header-subtitle { font-size: 12px; font-weight: 600; color: var(--grey-400); letter-spacing: 0.5px; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .header-badge { background: var(--blue-300); color: var(--blue-900); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .header-btn { background: none; border: 1px solid var(--border); color: var(--grey-600); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
+  .header-btn:hover { border-color: var(--blue-400); color: var(--blue-900); background: #edfaf9; }
+  .header-btn.danger:hover { border-color: var(--pink-700); color: var(--pink-700); background: #fdf0fc; }
+
+  /* SAVE NOTICE */
+  .save-notice { background: #edfaf9; border-bottom: 1px solid #a8e8e3; padding: 8px 40px; font-size: 12px; font-weight: 600; color: var(--blue-900); display: none; align-items: center; gap: 8px; }
+  .save-notice.visible { display: flex; }
+
+  .app-wrapper { max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  /* STEP NAV */
+  .step-nav { display: flex; background: var(--white); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .step-btn { flex: 1; padding: 16px 6px; background: none; border: none; border-right: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .step-btn:last-child { border-right: none; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--grey-200); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; transition: all 0.2s; }
+  .step-btn.active { color: var(--blue-900); background: #edfaf9; }
+  .step-btn.active .step-num { background: var(--blue-900); color: #fff; border-color: var(--blue-900); }
+  .step-btn.done { color: var(--blue-400); }
+  .step-btn.done .step-num { background: var(--blue-400); color: #fff; border-color: var(--blue-400); }
+  .step-btn:hover:not(.active) { background: var(--grey-100); color: var(--grey-600); }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+  /* PAGE HEADING */
+  .page-heading { margin-bottom: 28px; }
+  .page-heading h2 { font-size: 22px; font-weight: 800; color: var(--black); display: flex; align-items: center; gap: 12px; letter-spacing: -0.3px; }
+  .csv-tag { font-size: 10px; font-weight: 700; background: var(--blue-900); color: #fff; padding: 3px 9px; border-radius: 4px; letter-spacing: 1px; }
+  .page-heading p { font-size: 13px; color: var(--text-muted); margin-top: 5px; font-weight: 500; }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--grey-600); }
+  label .req { color: var(--pink-700); margin-left: 2px; }
+  input[type="text"], input[type="number"], input[type="password"], select {
+    background: var(--grey-100); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 13px; border-radius: 7px; font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--blue-400); box-shadow: 0 0 0 3px rgba(107,188,169,0.2); background: var(--white); }
+  input.input-valid { border-color: var(--success); background: var(--white); }
+  input.input-warn { border-color: #e0a020; background: #fffdf5; }
+  input.input-error { border-color: var(--pink-700); background: #fdf5fc; }
+  .field-feedback { font-size: 11px; font-weight: 600; margin-top: 2px; display: none; }
+  .field-feedback.visible { display: block; }
+  .field-feedback.warn { color: #8a5a00; }
+  .field-feedback.error { color: var(--pink-700); }
+  .field-feedback.ok { color: var(--success); }
+
+  /* NOTICES */
+  .notice { border-radius: 8px; padding: 14px 18px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px; line-height: 1.6; font-weight: 500; }
+  .notice.warn { background: #fff8f0; border: 1px solid #f5d9a8; color: #8a5a00; }
+  .notice.danger { background: #fdf0fc; border: 1px solid #e8b0e2; color: var(--pink-700); }
+  .notice.info { background: #edfaf9; border: 1px solid #a8e8e3; color: var(--blue-900); }
+  .notice-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .notice strong { font-weight: 700; display: block; margin-bottom: 2px; }
+
+  /* SITE NAME */
+  .site-name-field { background: var(--white); border: 2px solid var(--blue-300); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+  .site-name-field label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--black); display: block; margin-bottom: 10px; }
+  .site-name-field input { font-size: 15px; font-weight: 600; padding: 13px 16px; }
+  .site-name-field .hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
+
+  /* TEMPLATE LOAD BAR */
+  .template-load-bar { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .template-load-bar label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey-600); white-space: nowrap; }
+  .template-load-bar select { flex: 1; min-width: 200px; }
+  .template-load-bar .btn-primary { padding: 9px 20px; font-size: 12px; white-space: nowrap; }
+  .template-load-bar .no-templates { font-size: 12px; color: var(--text-muted); font-weight: 500; font-style: italic; }
+
+  /* DYNAMIC ROWS */
+  .dynamic-row { background: var(--grey-100); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 12px; }
+  .row-label { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; background: var(--blue-900); color: #fff; padding: 3px 10px; border-radius: 4px; margin-bottom: 14px; }
+  .remove-btn { background: #fdf0fc; border: 1px solid #e8b0e2; color: var(--pink-700); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.15s; font-family: 'Montserrat', sans-serif; white-space: nowrap; width: 100%; }
+  .remove-btn:hover { background: #f8d8f5; border-color: var(--pink-700); }
+  .add-btn { width: 100%; background: var(--white); border: 2px dashed var(--blue-300); color: var(--blue-900); padding: 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Montserrat', sans-serif; }
+  .add-btn:hover { border-color: var(--blue-900); background: #edfaf9; }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; align-items: center; }
+  .btn { padding: 11px 28px; border-radius: 7px; border: none; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+  .btn-primary { background: var(--blue-900); color: #fff; box-shadow: 0 2px 8px rgba(8,125,119,0.25); }
+  .btn-primary:hover:not(:disabled) { background: #065f5a; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(8,125,119,0.35); }
+  .btn-primary:disabled { background: var(--grey-200); color: var(--grey-400); box-shadow: none; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: var(--white); border: 1px solid var(--border); color: var(--grey-600); }
+  .btn-secondary:hover { border-color: var(--blue-400); color: var(--blue-900); }
+  .btn-teal { background: #edfaf9; border: 1px solid #a8e8e3; color: var(--blue-900); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; padding: 11px 20px; border-radius: 7px; cursor: pointer; transition: all 0.2s; }
+  .btn-teal:hover { background: #d4f5f2; }
+  .btn-warn { background: #fff8f0; border: 1px solid #f5d9a8; color: #8a5a00; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 7px; cursor: pointer; transition: all 0.2s; }
+  .btn-warn:hover { background: #fdefd6; }
+  .step-hint { font-size: 11px; color: var(--grey-400); font-weight: 600; margin-right: auto; }
+
+  /* AEGIS BAR */
+  .aegis-bar { background: #fdf0fc; border: 1px solid #e8b0e2; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; display: flex; align-items: center; gap: 14px; }
+  .aegis-bar input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pink-700); cursor: pointer; flex-shrink: 0; }
+  .aegis-bar label { font-size: 13px; font-weight: 700; color: var(--pink-700); text-transform: none; letter-spacing: 0; cursor: pointer; }
+  .aegis-bar .aegis-sub { font-size: 11px; color: var(--grey-400); margin-top: 3px; font-weight: 500; }
+
+  /* BULK BAR */
+  .bulk-bar { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .bulk-bar label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey-600); white-space: nowrap; }
+  .bulk-bar input[type="number"] { width: 80px; }
+  .bulk-bar .btn-primary { padding: 9px 20px; font-size: 12px; }
+
+  /* GEN BAR */
+  .gen-bar { background: #edfaf9; border: 1px solid #a8e8e3; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .gen-bar-text { font-size: 13px; color: var(--blue-900); font-weight: 500; }
+  .gen-bar-text strong { display: block; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+
+  /* EXPORT */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .summary-stat { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; border-top: 3px solid var(--blue-300); }
+  .summary-stat .stat-val { font-size: 32px; font-weight: 800; color: var(--blue-900); }
+  .summary-stat .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; font-weight: 600; }
+  .export-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .export-card { background: var(--grey-100); border: 1px solid var(--border); border-radius: 10px; padding: 22px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .export-card:hover { border-color: var(--blue-400); background: #edfaf9; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(8,125,119,0.12); }
+  .export-card .icon { font-size: 28px; }
+  .export-card .name { font-weight: 700; font-size: 13px; color: var(--black); }
+  .export-card .desc { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .export-card .row-count { font-size: 11px; background: #edfaf9; color: var(--blue-900); border: 1px solid #a8e8e3; padding: 2px 10px; border-radius: 20px; font-weight: 700; }
+  .export-all-btn { width: 100%; margin-top: 16px; padding: 15px; background: var(--blue-900); border: none; border-radius: 8px; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .export-all-btn:hover { background: #065f5a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(8,125,119,0.3); }
+
+  .empty-state { text-align: center; padding: 32px; color: var(--text-muted); font-size: 13px; font-weight: 500; background: var(--white); border: 2px dashed var(--border); border-radius: 10px; margin-bottom: 14px; }
+
+  /* ===================== MODAL ===================== */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 14px; width: 100%; max-width: 680px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.2s ease; overflow: hidden; }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.96) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .modal-header { padding: 22px 24px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .modal-header h3 { font-size: 17px; font-weight: 800; color: var(--black); }
+  .modal-header .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--grey-400); line-height: 1; padding: 2px 6px; border-radius: 4px; }
+  .modal-header .modal-close:hover { background: var(--grey-200); color: var(--grey-900); }
+  .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0; flex-wrap: wrap; }
+
+  /* TEMPLATE LIST */
+  .template-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .template-item { background: var(--grey-100); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: all 0.15s; }
+  .template-item:hover { border-color: var(--blue-300); background: #edfaf9; }
+  .template-item-info { flex: 1; min-width: 0; }
+  .template-item-name { font-size: 14px; font-weight: 700; color: var(--black); }
+  .template-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+  .template-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .tmpl-load-btn { background: var(--blue-900); border: none; color: #fff; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; transition: all 0.15s; white-space: nowrap; }
+  .tmpl-load-btn:hover { background: #065f5a; }
+  .tmpl-del-btn { background: #fdf0fc; border: 1px solid #e8b0e2; color: var(--pink-700); padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; transition: all 0.15s; }
+  .tmpl-del-btn:hover { background: #f8d8f5; }
+
+  /* SAVE TEMPLATE FORM */
+  .save-template-form { background: var(--grey-100); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .save-template-form label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--grey-600); display: block; margin-bottom: 8px; }
+  .save-template-form .save-row { display: flex; gap: 10px; }
+  .save-template-form input { flex: 1; }
+  .save-template-form .btn-primary { padding: 10px 20px; font-size: 13px; white-space: nowrap; }
+
+  .modal-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .modal-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .no-templates-msg { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; font-weight: 500; font-style: italic; }
+
+  @media (max-width: 700px) {
+    .step-btn span:last-child { display: none; }
+    .form-grid { grid-template-columns: 1fr; }
+    header { padding: 0 16px; }
+    .save-notice { padding: 8px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark"><span>Arc</span> Monitoring</div>
+    <div class="header-divider"></div>
+    <div class="header-subtitle">Immix Config Generator</div>
+  </div>
+  <div class="header-right">
+    <button class="header-btn" onclick="openTemplatesModal()">📋 Templates</button>
+    <button class="header-btn danger" onclick="resetAll()">↺ Start Over</button>
+    <div class="header-badge">Internal Tool</div>
+  </div>
+</header>
+
+<div class="save-notice" id="save-notice">✓ Progress restored from your last session.</div>
+
+<!-- TEMPLATES MODAL -->
+<div class="modal-overlay" id="templates-modal" onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📋 Site Templates</h3>
+      <button class="modal-close" onclick="closeTemplatesModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">Saved Templates</div>
+      <div id="template-list-container"></div>
+
+      <hr class="modal-divider">
+
+      <div class="modal-section-title">Save Current Config as Template</div>
+      <div class="save-template-form">
+        <label>Template Name</label>
+        <div class="save-row">
+          <input type="text" id="template-name-input" placeholder="e.g. Standard Hikvision 8 Camera Site">
+          <button class="btn btn-primary" onclick="saveTemplate()">Save Template</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="importTemplates()">⬆ Import Templates</button>
+      <button class="btn-teal" onclick="exportTemplates()">⬇ Export Templates</button>
+      <button class="btn btn-secondary" onclick="closeTemplatesModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
+
+<div class="app-wrapper">
+
+  <nav class="step-nav">
+    <button class="step-btn active" onclick="goStep(1)"><span class="step-num">1</span><span>Site</span></button>
+    <button class="step-btn" onclick="goStep(2)"><span class="step-num">2</span><span>Devices</span></button>
+    <button class="step-btn" onclick="goStep(3)"><span class="step-num">3</span><span>Cameras</span></button>
+    <button class="step-btn" onclick="goStep(4)"><span class="step-num">4</span><span>Alarms</span></button>
+    <button class="step-btn" onclick="goStep(5)"><span class="step-num">5</span><span>Actions</span></button>
+    <button class="step-btn" onclick="goStep(6)"><span class="step-num">6</span><span>Export</span></button>
+  </nav>
+
+  <!-- STEP 1 -->
+  <div class="panel active" id="step1">
+    <div class="page-heading"><h2>Before You Begin</h2><p>Confirm the site is ready in Immix before generating import files.</p></div>
+    <div class="notice danger"><span class="notice-icon">⚠️</span><div><strong>Site must already exist in Immix</strong>Please ensure the site has been added to Immix before proceeding. The import files generated by this tool will fail if the site does not already exist.</div></div>
+    <div class="notice warn"><span class="notice-icon">📋</span><div><strong>Site name must match exactly</strong>The site name below must match the site name in Immix character-for-character — including capitalisation, spacing and punctuation. Any mismatch will cause imports to fail.</div></div>
+    <div class="site-name-field">
+      <label>Immix Site Name <span class="req">*</span></label>
+      <input type="text" id="s_title" placeholder="Enter site name exactly as it appears in Immix" autocomplete="off" spellcheck="false" oninput="onSiteNameChange()">
+      <div class="hint">⚠ Case-sensitive — double-check spelling, spacing and punctuation before continuing.</div>
+    </div>
+    <div id="template-load-section"></div>
+    <div class="btn-row">
+      <span class="step-hint" id="hint1">Enter site name to continue</span>
+      <button class="btn btn-primary" id="next1" onclick="goStep(2)" disabled>Next: Devices →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel" id="step2">
+    <div class="page-heading"><h2>Devices <span class="csv-tag">DEVICES.CSV</span></h2><p>Add the recording devices for this site.</p></div>
+    <div id="device-list"></div>
+    <button class="add-btn" onclick="addDevice()">+ Add Device</button>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <span class="step-hint" id="hint2" style="display:none">Add at least one device to continue</span>
+      <button class="btn btn-primary" id="next2" onclick="goStep(3)" disabled>Next: Cameras →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="panel" id="step3">
+    <div class="page-heading"><h2>Cameras <span class="csv-tag">CAMERAS.CSV</span></h2><p>Define the cameras for this site.</p></div>
+    <div class="bulk-bar">
+      <label>Bulk Add Cameras:</label>
+      <input type="number" id="bulk_count" value="1" min="1" max="64">
+      <button class="btn btn-primary" onclick="bulkAddCameras()">Add Cameras</button>
+    </div>
+    <div id="camera-list"></div>
+    <button class="add-btn" onclick="addCamera()">+ Add Single Camera</button>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+      <span class="step-hint" id="hint3" style="display:none">Add at least one camera to continue</span>
+      <button class="btn btn-primary" id="next3" onclick="goStep(4)" disabled>Next: Alarms →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="panel" id="step4">
+    <div class="page-heading"><h2>Alarms <span class="csv-tag">ALARMS.CSV</span></h2><p>Configure alarm inputs for this site.</p></div>
+    <div id="aegis-bar-container"></div>
+    <div class="gen-bar">
+      <div class="gen-bar-text"><strong>Auto-generate alarms from cameras</strong>This will overwrite any alarms you have already entered.</div>
+      <button class="btn-warn" onclick="confirmGenerate()">⚡ Generate Alarms from Cameras</button>
+    </div>
+    <div id="alarm-list"></div>
+    <button class="add-btn" onclick="addAlarm()">+ Add Alarm Manually</button>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(5)">Next: Alarm Actions →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="panel" id="step5">
+    <div class="page-heading"><h2>Alarm Actions <span class="csv-tag">ALARMACTIONS.CSV</span></h2><p>Link alarms to cameras for image capture on trigger.</p></div>
+    <div class="gen-bar">
+      <div class="gen-bar-text"><strong>Auto-generate alarm actions from alarms</strong>This will overwrite any alarm actions you have already entered.</div>
+      <button class="btn-warn" onclick="confirmGenerateActions()">⚡ Generate Actions from Alarms</button>
+    </div>
+    <div id="action-list"></div>
+    <button class="add-btn" onclick="addAction()">+ Add Action Manually</button>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(4)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(6)">Review & Export →</button>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="panel" id="step6">
+    <div class="page-heading"><h2>Export</h2><p>Download your Immix import CSV files.</p></div>
+    <div class="summary-grid" id="summary-stats"></div>
+    <div class="card" style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="width:3px;height:14px;border-radius:2px;background:var(--success);display:inline-block;"></span> Ready to Download</div>
+      <div class="export-grid" id="export-cards"></div>
+      <button class="export-all-btn" onclick="exportAll()">⬇ Download All 4 CSV Files</button>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="goStep(5)">← Back</button></div>
+  </div>
+
+</div>
+
+<script>
+const LS_KEY = 'immix_tool_save';
+const LS_TEMPLATES_KEY = 'immix_tool_templates';
+let devices=[], cameras=[], alarms=[], actions=[];
+let dCount=0, cCount=0, aCount=0, acCount=0;
+let currentStep=1;
+
+// ===================== NAV =====================
+function goStep(n) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach((b,i)=>{
+    b.classList.remove('active','done');
+    if(i+1<n) b.classList.add('done');
+    if(i+1===n) b.classList.add('active');
+  });
+  currentStep=n;
+  if(n===6) buildExport();
+  window.scrollTo(0,0);
+  updateNextButtons();
+  updateAegisVisibility();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='SELECT'){
+    const nb=document.getElementById('next'+currentStep);
+    if(nb&&!nb.disabled&&currentStep<6) goStep(currentStep+1);
+  }
+});
+
+// ===================== HELPERS =====================
+function getSiteName(){return(document.getElementById('s_title').value||'').trim();}
+function fv(id){const el=document.getElementById(id);return el?(el.value||''):'';}
+function getDeviceNames(){return devices.map(d=>fv('dev_title_'+d.id)).filter(Boolean);}
+function getCameraNames(){return cameras.map(c=>fv('cam_name_'+c.id)).filter(Boolean);}
+function getAlarmTitles(){return alarms.map(a=>fv('alm_title_'+a.id)).filter(Boolean);}
+function getPrimaryDeviceType(){return devices.length?fv('dev_type_'+devices[0].id):null;}
+function getStartInput(){return getPrimaryDeviceType()==='Hikvision'?101:1;}
+function isAegis(){const el=document.getElementById('aegis_mode');return el?el.checked:false;}
+function hasHikvision(){return devices.some(d=>fv('dev_type_'+d.id)==='Hikvision');}
+
+function getDateStamp(){const d=new Date();return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;}
+function getFilePrefix(){const site=getSiteName().replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_').substring(0,20);return `${site}_${getDateStamp()}_`;}
+
+// ===================== IP VALIDATION =====================
+function isValidIPv4(v){return /^(\d{1,3}\.){3}\d{1,3}$/.test(v)&&v.split('.').every(o=>parseInt(o)>=0&&parseInt(o)<=255);}
+function isPrivateIP(v){if(!isValidIPv4(v))return false;const p=v.split('.').map(Number);return p[0]===10||(p[0]===172&&p[1]>=16&&p[1]<=31)||(p[0]===192&&p[1]===168);}
+function isValidHostname(v){return /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/.test(v)&&v.length>0;}
+
+function validateHostField(id){
+  const input=document.getElementById(id);
+  const feedback=document.getElementById(id+'_fb');
+  if(!input||!feedback) return;
+  const val=input.value.trim();
+  input.classList.remove('input-valid','input-warn','input-error');
+  feedback.classList.remove('visible','warn','error','ok');
+  if(!val) return;
+  if(isValidIPv4(val)){
+    if(isPrivateIP(val)){input.classList.add('input-warn');feedback.textContent='⚠ Private IP — ensure this is reachable from Immix externally.';feedback.classList.add('visible','warn');}
+    else{input.classList.add('input-valid');feedback.textContent='✓ Valid IP address';feedback.classList.add('visible','ok');}
+  } else if(isValidHostname(val)){
+    input.classList.add('input-valid');feedback.textContent='✓ Valid hostname';feedback.classList.add('visible','ok');
+  } else {
+    input.classList.add('input-error');feedback.textContent='✕ Not a valid IP address or hostname';feedback.classList.add('visible','error');
+  }
+}
+
+// ===================== AEGIS =====================
+function updateAegisVisibility(){
+  const container=document.getElementById('aegis-bar-container');
+  if(!container) return;
+  if(hasHikvision()){
+    container.innerHTML=`
+      <div class="aegis-bar">
+        <input type="checkbox" id="aegis_mode" onchange="onAegisChange()" ${isAegis()?'checked':''}>
+        <div>
+          <label for="aegis_mode">Aegis Security Ltd — Custom Priorities</label>
+          <div class="aegis-sub">Intrusion alarms → priority 700 &nbsp;|&nbsp; Adds View Tampering alarm per camera → priority 1000</div>
+        </div>
+      </div>`;
+  } else {
+    container.innerHTML='';
+    // Uncheck aegis if no hikvision
+    const el=document.getElementById('aegis_mode');
+    if(el) el.checked=false;
+  }
+}
+
+function onAegisChange(){
+  if(alarms.length>0){
+    const aegis=isAegis();
+    const msg=aegis
+      ?'Would you like to update existing alarm priorities for Aegis? (Intrusion → 700, add View Tampering)'
+      :'Would you like to revert existing alarm priorities back to standard? (Intrusion → 100, remove View Tampering)';
+    if(confirm(msg)){updateAegisInPlace(aegis);return;}
+  }
+  renderAlarms();saveProgress();
+}
+
+function updateAegisInPlace(aegis){
+  alarms.forEach(a=>{
+    if(!a.defaults) a.defaults={};
+    if(a.defaults.type==='Intrusion') a.defaults.priority=aegis?'700':'100';
+  });
+  if(aegis){
+    cameras.forEach(c=>{
+      const inp=fv('cam_input_'+c.id);
+      const exists=alarms.some(a=>a.defaults&&a.defaults.type==='View Tampering'&&a.defaults.input===inp);
+      if(!exists) addAlarmRow({title:`View Tampering ${inp}`,type:'View Tampering',priority:'1000',input:inp});
+    });
+  } else {
+    alarms=alarms.filter(a=>!(a.defaults&&a.defaults.type==='View Tampering'));
+  }
+  renderAlarms();saveProgress();
+}
+
+// ===================== PROGRESS =====================
+function onSiteNameChange(){updateNextButtons();renderTemplateLoadSection();saveProgress();}
+
+function updateNextButtons(){
+  const hasSite=getSiteName().length>0;
+  const n1=document.getElementById('next1');const h1=document.getElementById('hint1');
+  if(n1) n1.disabled=!hasSite; if(h1) h1.style.display=hasSite?'none':'';
+  const n2=document.getElementById('next2');const h2=document.getElementById('hint2');
+  if(n2) n2.disabled=devices.length===0; if(h2) h2.style.display=devices.length===0?'':'none';
+  const n3=document.getElementById('next3');const h3=document.getElementById('hint3');
+  if(n3) n3.disabled=cameras.length===0; if(h3) h3.style.display=cameras.length===0?'':'none';
+}
+
+// ===================== TEMPLATES =====================
+function getTemplates(){try{return JSON.parse(localStorage.getItem(LS_TEMPLATES_KEY)||'[]');}catch(e){return[];}}
+function saveTemplates(t){localStorage.setItem(LS_TEMPLATES_KEY,JSON.stringify(t));}
+
+function captureCurrentConfig(){
+  return {
+    devices: devices.map(d=>({type:fv('dev_type_'+d.id),title:fv('dev_title_'+d.id),host:fv('dev_host_'+d.id),port:fv('dev_port_'+d.id),user:fv('dev_user_'+d.id),pass:fv('dev_pass_'+d.id),edited:document.getElementById('dev_title_'+d.id)?.dataset?.edited==='true'})),
+    cameras: cameras.map(c=>{const s=document.getElementById('cam_device_'+c.id);return{device:s?.value||'',deviceCustom:fv('cam_device_custom_'+c.id),name:fv('cam_name_'+c.id),input:fv('cam_input_'+c.id)};}),
+    alarms: alarms.map(a=>({defaults:a.defaults,device:document.getElementById('alm_device_'+a.id)?.value||'',deviceCustom:fv('alm_device_custom_'+a.id),input:fv('alm_input_'+a.id),title:fv('alm_title_'+a.id),type:fv('alm_type_'+a.id),priority:fv('alm_priority_'+a.id)})),
+    actions: actions.map(a=>({defaults:a.defaults,alarm:document.getElementById('act_alarm_'+a.id)?.value||'',alarmCustom:fv('act_alarm_custom_'+a.id),camera:document.getElementById('act_camera_'+a.id)?.value||'',cameraCustom:fv('act_camera_custom_'+a.id),images:fv('act_images_'+a.id)})),
+    aegis: isAegis()
+  };
+}
+
+function saveTemplate(){
+  const nameInput=document.getElementById('template-name-input');
+  const name=(nameInput.value||'').trim();
+  if(!name){alert('Please enter a name for this template.');return;}
+  if(devices.length===0&&cameras.length===0&&alarms.length===0){alert('Nothing to save — please configure at least devices and cameras first.');return;}
+  const templates=getTemplates();
+  if(templates.some(t=>t.name===name)){if(!confirm(`A template named "${name}" already exists. Overwrite it?`)) return; const idx=templates.findIndex(t=>t.name===name);templates.splice(idx,1);}
+  const config=captureCurrentConfig();
+  const meta=`${config.devices.length} device${config.devices.length!==1?'s':''}, ${config.cameras.length} camera${config.cameras.length!==1?'s':''}, ${config.alarms.length} alarm${config.alarms.length!==1?'s':''}`;
+  templates.push({name,meta,savedAt:new Date().toISOString(),config});
+  saveTemplates(templates);
+  nameInput.value='';
+  renderTemplateList();
+  renderTemplateLoadSection();
+  alert(`Template "${name}" saved successfully!`);
+}
+
+function loadTemplate(name){
+  const templates=getTemplates();
+  const tmpl=templates.find(t=>t.name===name);
+  if(!tmpl) return;
+  if(!confirm(`Load template "${name}"? This will replace your current devices, cameras, alarms and actions.`)) return;
+  applyConfig(tmpl.config);
+  closeTemplatesModal();
+  goStep(2);
+}
+
+function applyConfig(config){
+  devices=[]; cameras=[]; alarms=[]; actions=[];
+  dCount=0; cCount=0; aCount=0; acCount=0;
+
+  // Devices
+  (config.devices||[]).forEach(d=>{
+    const id=++dCount; devices.push({id});
+  });
+  renderDevices();
+  (config.devices||[]).forEach((d,i)=>{
+    const dev=devices[i]; if(!dev) return;
+    const te=document.getElementById('dev_type_'+dev.id); if(te) te.value=d.type||'Hikvision';
+    const ti=document.getElementById('dev_title_'+dev.id); if(ti){ti.value=d.title||'';ti.dataset.edited=d.edited?'true':'false';}
+    const ho=document.getElementById('dev_host_'+dev.id); if(ho) ho.value=d.host||'';
+    const po=document.getElementById('dev_port_'+dev.id); if(po) po.value=d.port||'';
+    const us=document.getElementById('dev_user_'+dev.id); if(us) us.value=d.user||'';
+    const pa=document.getElementById('dev_pass_'+dev.id); if(pa) pa.value=d.pass||'';
+    if(d.host) validateHostField('dev_host_'+dev.id);
+  });
+  recalcPorts();
+
+  // Cameras
+  (config.cameras||[]).forEach(c=>{const id=++cCount;cameras.push({id});});
+  renderCameras();
+  (config.cameras||[]).forEach((c,i)=>{
+    const cam=cameras[i]; if(!cam) return;
+    const de=document.getElementById('cam_device_'+cam.id); if(de) de.value=c.device||'';
+    const na=document.getElementById('cam_name_'+cam.id); if(na) na.value=c.name||'';
+    const inp=document.getElementById('cam_input_'+cam.id); if(inp) inp.value=c.input||'';
+    const cw=document.getElementById('cam_custom_wrap_'+cam.id); if(cw) cw.style.display=c.device==='__custom__'?'':'none';
+    const dc=document.getElementById('cam_device_custom_'+cam.id); if(dc) dc.value=c.deviceCustom||'';
+  });
+
+  // Alarms
+  (config.alarms||[]).forEach(a=>{const id=++aCount;alarms.push({id,defaults:a.defaults||{}});});
+  renderAlarms();
+  (config.alarms||[]).forEach((a,i)=>{
+    const alm=alarms[i]; if(!alm) return;
+    const de=document.getElementById('alm_device_'+alm.id); if(de) de.value=a.device||'';
+    const inp=document.getElementById('alm_input_'+alm.id); if(inp) inp.value=a.input||'';
+    const ti=document.getElementById('alm_title_'+alm.id); if(ti) ti.value=a.title||'';
+    const ty=document.getElementById('alm_type_'+alm.id); if(ty) ty.value=a.type||'';
+    const pr=document.getElementById('alm_priority_'+alm.id); if(pr) pr.value=a.priority||'';
+    const cw=document.getElementById('alm_custom_wrap_'+alm.id); if(cw) cw.style.display=a.device==='__custom__'?'':'none';
+    const dc=document.getElementById('alm_device_custom_'+alm.id); if(dc) dc.value=a.deviceCustom||'';
+  });
+
+  // Set aegis
+  const aegisEl=document.getElementById('aegis_mode');
+  if(aegisEl) aegisEl.checked=config.aegis||false;
+
+  // Actions
+  (config.actions||[]).forEach(a=>{const id=++acCount;actions.push({id,defaults:a.defaults||{}});});
+  renderActions();
+  (config.actions||[]).forEach((a,i)=>{
+    const act=actions[i]; if(!act) return;
+    const al=document.getElementById('act_alarm_'+act.id); if(al) al.value=a.alarm||'';
+    const ca=document.getElementById('act_camera_'+act.id); if(ca) ca.value=a.camera||'';
+    const im=document.getElementById('act_images_'+act.id); if(im) im.value=a.images||'10';
+    const alw=document.getElementById('act_alarm_custom_wrap_'+act.id); if(alw) alw.style.display=a.alarm==='__custom__'?'':'none';
+    const alc=document.getElementById('act_alarm_custom_'+act.id); if(alc) alc.value=a.alarmCustom||'';
+    const caw=document.getElementById('act_camera_custom_wrap_'+act.id); if(caw) caw.style.display=a.camera==='__custom__'?'':'none';
+    const cac=document.getElementById('act_camera_custom_'+act.id); if(cac) cac.value=a.cameraCustom||'';
+  });
+
+  updateNextButtons();
+  updateAegisVisibility();
+  saveProgress();
+}
+
+function deleteTemplate(name){
+  if(!confirm(`Delete template "${name}"? This cannot be undone.`)) return;
+  const templates=getTemplates().filter(t=>t.name!==name);
+  saveTemplates(templates);
+  renderTemplateList();
+  renderTemplateLoadSection();
+}
+
+function renderTemplateList(){
+  const container=document.getElementById('template-list-container');
+  if(!container) return;
+  const templates=getTemplates();
+  if(!templates.length){container.innerHTML='<div class="no-templates-msg">No templates saved yet. Configure a site and save it as a template below.</div>';return;}
+  container.innerHTML=`<div class="template-list">${templates.map(t=>`
+    <div class="template-item">
+      <div class="template-item-info">
+        <div class="template-item-name">${t.name}</div>
+        <div class="template-item-meta">${t.meta} &nbsp;·&nbsp; Saved ${new Date(t.savedAt).toLocaleDateString('en-GB')}</div>
+      </div>
+      <div class="template-item-actions">
+        <button class="tmpl-load-btn" onclick="loadTemplate('${t.name.replace(/'/g,"\\'")}')">Load</button>
+        <button class="tmpl-del-btn" onclick="deleteTemplate('${t.name.replace(/'/g,"\\'")}')">✕</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderTemplateLoadSection(){
+  const container=document.getElementById('template-load-section');
+  if(!container) return;
+  const templates=getTemplates();
+  if(!templates.length||!getSiteName()){container.innerHTML='';return;}
+  container.innerHTML=`
+    <div class="template-load-bar">
+      <label>Load a Template:</label>
+      <select id="template-select">
+        <option value="">-- select a template --</option>
+        ${templates.map(t=>`<option value="${t.name}">${t.name}</option>`).join('')}
+      </select>
+      <button class="btn btn-primary" onclick="loadTemplateFromSelect()">Load Template</button>
+    </div>`;
+}
+
+function loadTemplateFromSelect(){
+  const sel=document.getElementById('template-select');
+  if(!sel||!sel.value){alert('Please select a template first.');return;}
+  loadTemplate(sel.value);
+}
+
+function openTemplatesModal(){
+  renderTemplateList();
+  document.getElementById('templates-modal').classList.add('open');
+}
+function closeTemplatesModal(){document.getElementById('templates-modal').classList.remove('open');}
+function closeModalOnOverlay(e){if(e.target===document.getElementById('templates-modal')) closeTemplatesModal();}
+
+function exportTemplates(){
+  const templates=getTemplates();
+  if(!templates.length){alert('No templates to export.');return;}
+  const blob=new Blob([JSON.stringify(templates,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`immix_templates_${getDateStamp()}.json`;a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importTemplates(){document.getElementById('import-file-input').click();}
+
+function handleImportFile(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)) throw new Error('Invalid format');
+      const existing=getTemplates();
+      let added=0, skipped=0;
+      imported.forEach(t=>{
+        if(!t.name||!t.config){skipped++;return;}
+        if(existing.some(e=>e.name===t.name)){skipped++;return;}
+        existing.push(t); added++;
+      });
+      saveTemplates(existing);
+      renderTemplateList();
+      renderTemplateLoadSection();
+      alert(`Import complete: ${added} template${added!==1?'s':''} added, ${skipped} skipped (duplicates or invalid).`);
+    }catch(err){alert('Could not read the file. Please make sure it is a valid templates JSON file.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ===================== LOCALSTORAGE =====================
+function saveProgress(){
+  try{
+    const snap={
+      siteName:getSiteName(),aegis:isAegis(),dCount,cCount,aCount,acCount,
+      devices:devices.map(d=>({id:d.id,type:fv('dev_type_'+d.id),title:fv('dev_title_'+d.id),host:fv('dev_host_'+d.id),port:fv('dev_port_'+d.id),user:fv('dev_user_'+d.id),pass:fv('dev_pass_'+d.id),edited:document.getElementById('dev_title_'+d.id)?.dataset?.edited==='true'})),
+      cameras:cameras.map(c=>({id:c.id,device:document.getElementById('cam_device_'+c.id)?.value||'',deviceCustom:fv('cam_device_custom_'+c.id),name:fv('cam_name_'+c.id),input:fv('cam_input_'+c.id)})),
+      alarms:alarms.map(a=>({id:a.id,defaults:a.defaults,device:document.getElementById('alm_device_'+a.id)?.value||'',deviceCustom:fv('alm_device_custom_'+a.id),input:fv('alm_input_'+a.id),title:fv('alm_title_'+a.id),type:fv('alm_type_'+a.id),priority:fv('alm_priority_'+a.id)})),
+      actions:actions.map(a=>({id:a.id,defaults:a.defaults,alarm:document.getElementById('act_alarm_'+a.id)?.value||'',alarmCustom:fv('act_alarm_custom_'+a.id),camera:document.getElementById('act_camera_'+a.id)?.value||'',cameraCustom:fv('act_camera_custom_'+a.id),images:fv('act_images_'+a.id)}))
+    };
+    localStorage.setItem(LS_KEY,JSON.stringify(snap));
+  }catch(e){}
+}
+
+function loadProgress(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);if(!raw) return false;
+    const snap=JSON.parse(raw);if(!snap) return false;
+    if(snap.siteName) document.getElementById('s_title').value=snap.siteName;
+    dCount=snap.dCount||0;cCount=snap.cCount||0;aCount=snap.aCount||0;acCount=snap.acCount||0;
+    devices=(snap.devices||[]).map(d=>({id:d.id}));
+    cameras=(snap.cameras||[]).map(c=>({id:c.id}));
+    alarms=(snap.alarms||[]).map(a=>({id:a.id,defaults:a.defaults||{}}));
+    actions=(snap.actions||[]).map(a=>({id:a.id,defaults:a.defaults||{}}));
+    renderDevices();
+    (snap.devices||[]).forEach(d=>{
+      const te=document.getElementById('dev_type_'+d.id);if(te)te.value=d.type||'Hikvision';
+      const ti=document.getElementById('dev_title_'+d.id);if(ti){ti.value=d.title||'';ti.dataset.edited=d.edited?'true':'false';}
+      const ho=document.getElementById('dev_host_'+d.id);if(ho)ho.value=d.host||'';
+      const po=document.getElementById('dev_port_'+d.id);if(po)po.value=d.port||'';
+      const us=document.getElementById('dev_user_'+d.id);if(us)us.value=d.user||'';
+      const pa=document.getElementById('dev_pass_'+d.id);if(pa)pa.value=d.pass||'';
+      if(d.host)validateHostField('dev_host_'+d.id);
+    });
+    renderCameras();
+    (snap.cameras||[]).forEach(c=>{
+      const de=document.getElementById('cam_device_'+c.id);if(de)de.value=c.device||'';
+      const na=document.getElementById('cam_name_'+c.id);if(na)na.value=c.name||'';
+      const inp=document.getElementById('cam_input_'+c.id);if(inp)inp.value=c.input||'';
+      const cw=document.getElementById('cam_custom_wrap_'+c.id);if(cw)cw.style.display=c.device==='__custom__'?'':'none';
+      const dc=document.getElementById('cam_device_custom_'+c.id);if(dc)dc.value=c.deviceCustom||'';
+    });
+    renderAlarms();
+    (snap.alarms||[]).forEach(a=>{
+      const de=document.getElementById('alm_device_'+a.id);if(de)de.value=a.device||'';
+      const inp=document.getElementById('alm_input_'+a.id);if(inp)inp.value=a.input||'';
+      const ti=document.getElementById('alm_title_'+a.id);if(ti)ti.value=a.title||'';
+      const ty=document.getElementById('alm_type_'+a.id);if(ty)ty.value=a.type||'';
+      const pr=document.getElementById('alm_priority_'+a.id);if(pr)pr.value=a.priority||'';
+      const cw=document.getElementById('alm_custom_wrap_'+a.id);if(cw)cw.style.display=a.device==='__custom__'?'':'none';
+      const dc=document.getElementById('alm_device_custom_'+a.id);if(dc)dc.value=a.deviceCustom||'';
+    });
+    if(snap.aegis){setTimeout(()=>{updateAegisVisibility();const el=document.getElementById('aegis_mode');if(el)el.checked=true;},50);}
+    renderActions();
+    (snap.actions||[]).forEach(a=>{
+      const al=document.getElementById('act_alarm_'+a.id);if(al)al.value=a.alarm||'';
+      const ca=document.getElementById('act_camera_'+a.id);if(ca)ca.value=a.camera||'';
+      const im=document.getElementById('act_images_'+a.id);if(im)im.value=a.images||'10';
+      const alw=document.getElementById('act_alarm_custom_wrap_'+a.id);if(alw)alw.style.display=a.alarm==='__custom__'?'':'none';
+      const alc=document.getElementById('act_alarm_custom_'+a.id);if(alc)alc.value=a.alarmCustom||'';
+      const caw=document.getElementById('act_camera_custom_wrap_'+a.id);if(caw)caw.style.display=a.camera==='__custom__'?'':'none';
+      const cac=document.getElementById('act_camera_custom_'+a.id);if(cac)cac.value=a.cameraCustom||'';
+    });
+    updateNextButtons();renderTemplateLoadSection();
+    return true;
+  }catch(e){return false;}
+}
+
+// ===================== RESET =====================
+function resetAll(){
+  if(!confirm('Are you sure you want to start over? All entered data will be cleared.')) return;
+  localStorage.removeItem(LS_KEY);
+  devices=[];cameras=[];alarms=[];actions=[];
+  dCount=0;cCount=0;aCount=0;acCount=0;
+  document.getElementById('s_title').value='';
+  renderDevices();renderCameras();renderAlarms();renderActions();
+  goStep(1);
+  document.getElementById('save-notice').classList.remove('visible');
+  renderTemplateLoadSection();
+}
+
+// ===================== DEVICES =====================
+function addDevice(){const id=++dCount;devices.push({id});renderDevices();updateAegisVisibility();saveProgress();}
+function removeDevice(id){devices=devices.filter(d=>d.id!==id);renderDevices();updateNextButtons();updateAegisVisibility();saveProgress();}
+
+function onDeviceTypeChange(id){
+  const typeVal=fv('dev_type_'+id);
+  const titleEl=document.getElementById('dev_title_'+id);
+  if(titleEl&&titleEl.dataset.edited!=='true') titleEl.value=typeVal;
+  recalcPorts();updateAegisVisibility();saveProgress();
+}
+function markEdited(id){const el=document.getElementById('dev_title_'+id);if(el)el.dataset.edited='true';saveProgress();}
+
+function recalcPorts(){
+  const typeCount={};
+  devices.forEach(d=>{
+    const te=document.getElementById('dev_type_'+d.id);const pe=document.getElementById('dev_port_'+d.id);
+    if(!te||!pe)return;
+    const type=te.value;const base=type==='Hikvision'?8000:37777;
+    if(!typeCount[type])typeCount[type]=0;
+    pe.value=base+typeCount[type];typeCount[type]++;
+  });
+}
+
+function renderDevices(){
+  const el=document.getElementById('device-list');
+  if(!devices.length){el.innerHTML='<div class="empty-state">No devices added yet.</div>';updateNextButtons();return;}
+  const typeCount={};
+  el.innerHTML=devices.map((d,i)=>{
+    if(!typeCount['Hikvision'])typeCount['Hikvision']=0;
+    const port=8000+typeCount['Hikvision'];typeCount['Hikvision']++;
+    return `
+    <div class="dynamic-row">
+      <div class="row-label">Device ${i+1}</div>
+      <div class="form-grid">
+        <div class="field"><label>Device Type <span class="req">*</span></label>
+          <select id="dev_type_${d.id}" onchange="onDeviceTypeChange(${d.id})">
+            <option value="Hikvision">Hikvision</option><option value="Dahua">Dahua</option>
+          </select>
+        </div>
+        <div class="field"><label>Device Title <span class="req">*</span></label>
+          <input type="text" id="dev_title_${d.id}" value="Hikvision" data-edited="false" oninput="markEdited(${d.id})">
+        </div>
+        <div class="field"><label>Host / IP</label>
+          <input type="text" id="dev_host_${d.id}" placeholder="192.168.1.100 or host.example.com" oninput="validateHostField('dev_host_${d.id}');saveProgress()">
+          <span class="field-feedback" id="dev_host_${d.id}_fb"></span>
+        </div>
+        <div class="field"><label>Port</label><input type="number" id="dev_port_${d.id}" value="${port}" oninput="saveProgress()"></div>
+        <div class="field"><label>Username</label><input type="text" id="dev_user_${d.id}" placeholder="admin" oninput="saveProgress()"></div>
+        <div class="field"><label>Password</label><input type="password" id="dev_pass_${d.id}" oninput="saveProgress()"></div>
+        <div class="field" style="align-self:flex-end"><label>&nbsp;</label><button class="remove-btn" onclick="removeDevice(${d.id})">✕ Remove</button></div>
+      </div>
+    </div>`;
+  }).join('');
+  recalcPorts();updateNextButtons();
+}
+
+// ===================== CAMERAS =====================
+function bulkAddCameras(){const count=parseInt(document.getElementById('bulk_count').value)||1;for(let i=0;i<count;i++){const id=++cCount;cameras.push({id});}renderCameras();saveProgress();}
+function addCamera(){const id=++cCount;cameras.push({id});renderCameras();saveProgress();}
+function removeCamera(id){cameras=cameras.filter(c=>c.id!==id);renderCameras();updateNextButtons();saveProgress();}
+
+function renderCameras(){
+  const el=document.getElementById('camera-list');
+  const devNames=getDeviceNames();const firstDev=devNames[0]||'';const startInput=getStartInput();
+  if(!cameras.length){el.innerHTML='<div class="empty-state">No cameras added yet.</div>';updateNextButtons();return;}
+  el.innerHTML=cameras.map((c,i)=>`
+    <div class="dynamic-row">
+      <div class="row-label">Camera ${i+1}</div>
+      <div class="form-grid">
+        <div class="field"><label>Device Name <span class="req">*</span></label>
+          <select id="cam_device_${c.id}" onchange="onCamDeviceChange(${c.id});saveProgress()">
+            <option value="">-- select device --</option>
+            ${devNames.map(n=>`<option value="${n}"${n===firstDev?' selected':''}>${n}</option>`).join('')}
+            <option value="__custom__">Other (enter below)</option>
+          </select>
+        </div>
+        <div class="field" id="cam_custom_wrap_${c.id}" style="display:none"><label>Device Name (manual)</label>
+          <input type="text" id="cam_device_custom_${c.id}" placeholder="Device name" oninput="saveProgress()">
+        </div>
+        <div class="field"><label>Camera Name <span class="req">*</span></label>
+          <input type="text" id="cam_name_${c.id}" value="Camera ${i+1}" oninput="saveProgress()">
+        </div>
+        <div class="field"><label>Input Number</label>
+          <input type="number" id="cam_input_${c.id}" value="${startInput+i}" oninput="saveProgress()">
+        </div>
+        <div class="field" style="align-self:flex-end"><label>&nbsp;</label><button class="remove-btn" onclick="removeCamera(${c.id})">✕ Remove</button></div>
+      </div>
+    </div>`).join('');
+  updateNextButtons();
+}
+function onCamDeviceChange(id){const s=document.getElementById('cam_device_'+id);const w=document.getElementById('cam_custom_wrap_'+id);if(w)w.style.display=s&&s.value==='__custom__'?'':'none';}
+
+// ===================== ALARMS =====================
+function confirmGenerate(){if(alarms.length>0&&!confirm('This will overwrite all existing alarms. Are you sure?'))return;generateAlarms();}
+function generateAlarms(){
+  alarms=[];aCount=0;
+  const devType=getPrimaryDeviceType()||'Hikvision';const aegis=isAegis();
+  cameras.forEach(c=>{
+    const inp=fv('cam_input_'+c.id);
+    if(devType==='Hikvision'){
+      addAlarmRow({title:`Intrusion ${inp}`,type:'Intrusion',priority:aegis?'700':'100',input:inp});
+      addAlarmRow({title:`Line Crossing ${inp}`,type:'Line Crossing',priority:'100',input:inp});
+      addAlarmRow({title:`Video Signal Lost ${inp}`,type:'Video Signal Lost',priority:'1000',input:inp});
+      if(aegis)addAlarmRow({title:`View Tampering ${inp}`,type:'View Tampering',priority:'1000',input:inp});
+    }else{
+      addAlarmRow({title:`Intrusion ${inp}`,type:'Intrusion',priority:aegis?'700':'100',input:inp});
+      addAlarmRow({title:`Tripwire ${inp}`,type:'Tripwire',priority:'100',input:inp});
+      addAlarmRow({title:`Cam Offline ${inp}`,type:'Cam Offline',priority:'1000',input:inp});
+      if(aegis)addAlarmRow({title:`View Tampering ${inp}`,type:'View Tampering',priority:'1000',input:inp});
+    }
+  });
+  renderAlarms();saveProgress();
+}
+function addAlarmRow(defaults){const id=++aCount;alarms.push({id,defaults:defaults||{}});}
+function addAlarm(){addAlarmRow({});renderAlarms();saveProgress();}
+function removeAlarm(id){alarms=alarms.filter(a=>a.id!==id);renderAlarms();saveProgress();}
+
+const hikTypes=['Intrusion','Line Crossing','Video Signal Lost','View Tampering','Motion','Tamper','Fire','Panic','Other'];
+const dahuaTypes=['Intrusion','Tripwire','Cam Offline','View Tampering','Motion','Tamper','Fire','Panic','Other'];
+function getAlarmTypeOptions(selected){const devType=getPrimaryDeviceType()||'Hikvision';const list=devType==='Hikvision'?hikTypes:dahuaTypes;const all=list.includes(selected)?list:[selected,...list].filter(Boolean);return all.map(t=>`<option value="${t}"${t===selected?' selected':''}>${t}</option>`).join('');}
+
+function renderAlarms(){
+  const el=document.getElementById('alarm-list');
+  const devNames=getDeviceNames();const devFirst=devNames[0]||'';
+  if(!alarms.length){el.innerHTML='<div class="empty-state">No alarms added yet. Use "Generate Alarms from Cameras" or add manually.</div>';return;}
+  el.innerHTML=alarms.map((a,i)=>{const d=a.defaults||{};return `
+    <div class="dynamic-row">
+      <div class="row-label">Alarm ${i+1}</div>
+      <div class="form-grid">
+        <div class="field"><label>Device Name</label>
+          <select id="alm_device_${a.id}" onchange="onAlmDeviceChange(${a.id});saveProgress()">
+            <option value="">-- select device --</option>
+            ${devNames.map(n=>`<option value="${n}"${n===devFirst?' selected':''}>${n}</option>`).join('')}
+            <option value="__custom__">Other (enter below)</option>
+          </select>
+        </div>
+        <div class="field" id="alm_custom_wrap_${a.id}" style="display:none"><label>Device (manual)</label>
+          <input type="text" id="alm_device_custom_${a.id}" placeholder="Device name" oninput="saveProgress()">
+        </div>
+        <div class="field"><label>Alarm Input</label><input type="text" id="alm_input_${a.id}" value="${d.input||''}" placeholder="Input number" oninput="saveProgress()"></div>
+        <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="alm_title_${a.id}" value="${d.title||''}" placeholder="e.g. Intrusion 101" oninput="saveProgress()"></div>
+        <div class="field"><label>Alarm Type</label><select id="alm_type_${a.id}" onchange="saveProgress()">${getAlarmTypeOptions(d.type||'Intrusion')}</select></div>
+        <div class="field"><label>Priority</label><input type="number" id="alm_priority_${a.id}" value="${d.priority||'100'}" oninput="saveProgress()"></div>
+        <div class="field" style="align-self:flex-end"><label>&nbsp;</label><button class="remove-btn" onclick="removeAlarm(${a.id})">✕ Remove</button></div>
+      </div>
+    </div>`;}).join('');
+}
+function onAlmDeviceChange(id){const s=document.getElementById('alm_device_'+id);const w=document.getElementById('alm_custom_wrap_'+id);if(w)w.style.display=s&&s.value==='__custom__'?'':'none';}
+
+// ===================== ALARM ACTIONS =====================
+function getCameraByInput(inputNum){for(const c of cameras){if(String(fv('cam_input_'+c.id))===String(inputNum))return fv('cam_name_'+c.id);}return '';}
+function confirmGenerateActions(){if(actions.length>0&&!confirm('This will overwrite all existing alarm actions. Are you sure?'))return;generateActions();}
+function generateActions(){
+  actions=[];acCount=0;
+  alarms.forEach(a=>{const id=++acCount;actions.push({id,defaults:{alarm:fv('alm_title_'+a.id),camera:getCameraByInput(fv('alm_input_'+a.id)),images:'10'}});});
+  renderActions();saveProgress();
+}
+function addAction(){const id=++acCount;actions.push({id,defaults:{}});renderActions();saveProgress();}
+function removeAction(id){actions=actions.filter(a=>a.id!==id);renderActions();saveProgress();}
+
+function renderActions(){
+  const el=document.getElementById('action-list');
+  const alarmTitles=getAlarmTitles();const camNames=getCameraNames();
+  if(!actions.length){el.innerHTML='<div class="empty-state">No alarm actions yet. Use "Generate Actions from Alarms" or add manually.</div>';return;}
+  el.innerHTML=actions.map((a,i)=>{const d=a.defaults||{};const alarmInList=alarmTitles.includes(d.alarm);const camInList=camNames.includes(d.camera);return `
+    <div class="dynamic-row">
+      <div class="row-label">Action ${i+1}</div>
+      <div class="form-grid">
+        <div class="field"><label>Alarm <span class="req">*</span></label>
+          <select id="act_alarm_${a.id}" onchange="onActAlarmChange(${a.id});saveProgress()">
+            <option value="">-- select alarm --</option>
+            ${alarmTitles.map(t=>`<option value="${t}"${t===d.alarm?' selected':''}>${t}</option>`).join('')}
+            <option value="__custom__"${!alarmInList&&d.alarm?' selected':''}>Other (enter below)</option>
+          </select>
+        </div>
+        <div class="field" id="act_alarm_custom_wrap_${a.id}" style="display:${!alarmInList&&d.alarm?'':'none'}"><label>Alarm (manual)</label>
+          <input type="text" id="act_alarm_custom_${a.id}" value="${!alarmInList&&d.alarm?d.alarm:''}" placeholder="Alarm title" oninput="saveProgress()">
+        </div>
+        <div class="field"><label>Camera <span class="req">*</span></label>
+          <select id="act_camera_${a.id}" onchange="onActCameraChange(${a.id});saveProgress()">
+            <option value="">-- select camera --</option>
+            ${camNames.map(n=>`<option value="${n}"${n===d.camera?' selected':''}>${n}</option>`).join('')}
+            <option value="__custom__"${!camInList&&d.camera?' selected':''}>Other (enter below)</option>
+          </select>
+        </div>
+        <div class="field" id="act_camera_custom_wrap_${a.id}" style="display:${!camInList&&d.camera?'':'none'}"><label>Camera (manual)</label>
+          <input type="text" id="act_camera_custom_${a.id}" value="${!camInList&&d.camera?d.camera:''}" placeholder="Camera name" oninput="saveProgress()">
+        </div>
+        <div class="field"><label>Number of Images</label><input type="number" id="act_images_${a.id}" value="${d.images||'10'}" min="1" oninput="saveProgress()"></div>
+        <div class="field" style="align-self:flex-end"><label>&nbsp;</label><button class="remove-btn" onclick="removeAction(${a.id})">✕ Remove</button></div>
+      </div>
+    </div>`;}).join('');
+}
+function onActAlarmChange(id){const s=document.getElementById('act_alarm_'+id);const w=document.getElementById('act_alarm_custom_wrap_'+id);if(w)w.style.display=s&&s.value==='__custom__'?'':'none';}
+function onActCameraChange(id){const s=document.getElementById('act_camera_'+id);const w=document.getElementById('act_camera_custom_wrap_'+id);if(w)w.style.display=s&&s.value==='__custom__'?'':'none';}
+
+// ===================== CSV =====================
+function q(val){const s=String(val===null||val===undefined?'':val);if(s.includes(',')||s.includes('"')||s.includes('\n'))return'"'+s.replace(/"/g,'""')+'"';return s;}
+function row(arr){return arr.map(q).join(',');}
+function buildDevicesCSV(){const hdr='Site Name,Device Title,Device Type,Host,Port,Username,Password,ExtraValue,Edge Path,Edge Username,Edge Password,Show Edge,Receive Undefined Alarms,Log Disarmed Alarms';const site=getSiteName();return hdr+'\n'+devices.map(d=>row([site,fv('dev_title_'+d.id),fv('dev_type_'+d.id),fv('dev_host_'+d.id),fv('dev_port_'+d.id),fv('dev_user_'+d.id),fv('dev_pass_'+d.id),'','','','','','',''])).join('\n');}
+function buildCamerasCSV(){const hdr='Site Name,Device name,Camera Name,Input Number,Has PTZ,Extra Value,Camera Quality,Telementry Speed';const site=getSiteName();return hdr+'\n'+cameras.map(c=>{const s=document.getElementById('cam_device_'+c.id);const dev=s&&s.value==='__custom__'?fv('cam_device_custom_'+c.id):(s?.value||'');return row([site,dev,fv('cam_name_'+c.id),fv('cam_input_'+c.id),'','','','']);}).join('\n');}
+function buildAlarmsCSV(){const hdr='Site Name,Device Name,Alarm Input,Alarm Input2,Title,Alarm Type,Priority,Runaway Threshold,Runaway minutes,Auto handle,Alarm Tag,Script,Routing group,Extra value,Match Radius,Match Geofence';const site=getSiteName();return hdr+'\n'+alarms.map(a=>{const s=document.getElementById('alm_device_'+a.id);const dev=s&&s.value==='__custom__'?fv('alm_device_custom_'+a.id):(s?.value||'');return row([site,dev,fv('alm_input_'+a.id),'',fv('alm_title_'+a.id),fv('alm_type_'+a.id),fv('alm_priority_'+a.id),'','','','','','','','','']);}).join('\n');}
+function buildActionsCSV(){const hdr='Site Name,Alarm,Camera,Number of Images, Record Pre Alarm Footage, Record Quality';const site=getSiteName();return hdr+'\n'+actions.map(a=>{const as=document.getElementById('act_alarm_'+a.id);const alarmVal=as&&as.value==='__custom__'?fv('act_alarm_custom_'+a.id):(as?.value||'');const cs=document.getElementById('act_camera_'+a.id);const camVal=cs&&cs.value==='__custom__'?fv('act_camera_custom_'+a.id):(cs?.value||'');return row([site,alarmVal,camVal,fv('act_images_'+a.id),'','']);}).join('\n');}
+
+const csvDefs=[
+  {key:'devices',name:'Devices.csv',icon:'🖥️',desc:'Recording devices',build:buildDevicesCSV,count:()=>devices.length},
+  {key:'cameras',name:'Cameras.csv',icon:'📷',desc:'Camera inputs',build:buildCamerasCSV,count:()=>cameras.length},
+  {key:'alarms',name:'Alarms.csv',icon:'🚨',desc:'Alarm inputs',build:buildAlarmsCSV,count:()=>alarms.length},
+  {key:'actions',name:'AlarmActions.csv',icon:'⚡',desc:'Alarm-camera links',build:buildActionsCSV,count:()=>actions.length},
+];
+window.csvDefs=csvDefs;
+
+function downloadCSV(filename,content){const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+window.downloadCSV=downloadCSV;
+
+function buildExport(){
+  document.getElementById('summary-stats').innerHTML=`
+    <div class="summary-stat"><div class="stat-val">${devices.length}</div><div class="stat-label">Devices</div></div>
+    <div class="summary-stat"><div class="stat-val">${cameras.length}</div><div class="stat-label">Cameras</div></div>
+    <div class="summary-stat"><div class="stat-val">${alarms.length}</div><div class="stat-label">Alarms</div></div>
+    <div class="summary-stat"><div class="stat-val">${actions.length}</div><div class="stat-label">Alarm Actions</div></div>`;
+  document.getElementById('export-cards').innerHTML=csvDefs.map(def=>`
+    <div class="export-card" onclick="downloadCSV('${getFilePrefix()}${def.name}',window.csvDefs.find(d=>d.key==='${def.key}').build())">
+      <div class="icon">${def.icon}</div><div class="name">${def.name}</div>
+      <div class="desc">${def.desc}</div><div class="row-count">${def.count()} row${def.count()!==1?'s':''}</div>
+    </div>`).join('');
+}
+function exportAll(){const prefix=getFilePrefix();csvDefs.forEach((def,i)=>setTimeout(()=>downloadCSV(prefix+def.name,def.build()),i*150));}
+
+// ===================== INIT =====================
+renderDevices();renderCameras();renderAlarms();renderActions();
+const restored=loadProgress();
+if(restored){document.getElementById('save-notice').classList.add('visible');setTimeout(()=>document.getElementById('save-notice').classList.remove('visible'),5000);}
+updateNextButtons();
+updateAegisVisibility();
+renderTemplateLoadSection();
+</script>
+</body>
+</html>
